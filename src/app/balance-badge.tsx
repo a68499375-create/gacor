@@ -3,8 +3,11 @@ import { getCurrentUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function BalanceBadge() {
-  const user = await getCurrentUser();
-  const balance = user?.balance ?? 0;
+  let balance = 0;
+  try {
+    const user = await getCurrentUser();
+    balance = user?.balance ?? 0;
+  } catch {}
   return (
     <div className="flex items-center gap-2.5 rounded-sm border border-gold-deep/60 bg-ink-3 px-3 py-1.5 shadow-inner shadow-black/50">
       <div className="relative h-8 w-8">

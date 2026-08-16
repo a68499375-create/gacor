@@ -5,11 +5,22 @@ import { userGetProfile, getMyTopUpsAction, getMyWithdrawalsAction } from "@/app
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
   if (!user) redirect("/login");
 
-  const profile = await userGetProfile();
-  const [topups, withdrawals] = await Promise.all([getMyTopUpsAction(), getMyWithdrawalsAction()]);
+  let profile = null;
+  try {
+    profile = await userGetProfile();
+  } catch {}
+  if (!profile) redirect("/login");
+
+  const [topups, withdrawals] = await Promise.all([
+    getMyTopUpsAction().catch(() => []),
+    getMyWithdrawalsAction().catch(() => []),
+  ]);
 
   return (
     <div className="space-y-8">

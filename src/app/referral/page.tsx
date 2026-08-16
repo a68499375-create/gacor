@@ -5,10 +5,13 @@ import { getSetting } from "@/lib/games";
 export const dynamic = "force-dynamic";
 
 export default async function ReferralPage() {
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
   if (!user) redirect("/login");
 
-  const referralPercent = await getSetting<number>("referral_bonus_percent", 5);
+  const referralPercent = await getSetting<number>("referral_bonus_percent", 5).catch(() => 5);
   const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || "https://goldenarena.local"}/register?ref=${user.referralCode}`;
 
   return (

@@ -6,9 +6,12 @@ import { RecentWins } from "../recent-wins";
 export const dynamic = "force-dynamic";
 
 export default async function HistoryPage() {
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
   if (!user) redirect("/login");
-  const history = await getHistory(user.id, 200);
+  const history = await getHistory(user.id, 200).catch(() => []);
   return (
     <div className="space-y-8">
       <div className="border-b border-line pb-5">

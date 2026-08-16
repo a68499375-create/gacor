@@ -4,9 +4,9 @@ export const dynamic = "force-dynamic";
 
 export default async function LeaderboardPage() {
   const [leaderboard, tournament, tournamentTop] = await Promise.all([
-    getLeaderboardAction(50),
-    getActiveTournamentAction(),
-    getTournamentLeaderboardAction("wagered"),
+    getLeaderboardAction(50).catch(() => []),
+    getActiveTournamentAction().catch(() => null),
+    getTournamentLeaderboardAction("wagered").catch(() => []),
   ]);
 
   return (
