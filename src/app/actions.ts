@@ -19,15 +19,21 @@ async function rateLimitAction(key: string) {
 }
 
 export async function getInitialState() {
-  await boot();
-  const user = await getCurrentUser();
+  try {
+    await boot();
+  } catch {}
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
+
   const [games, history, stats, announcements, leaderboard, tournament] = await Promise.all([
-    G.getAllGames(),
-    user ? G.getHistory(user.id, 30) : Promise.resolve([]),
-    user ? G.getUserStats() : Promise.resolve(null),
-    G.getActiveAnnouncements(),
-    G.getLeaderboard(10),
-    G.getActiveTournament(),
+    G.getAllGames().catch(() => []),
+    user ? G.getHistory(user.id, 30).catch(() => []) : Promise.resolve([]),
+    user ? G.getUserStats().catch(() => null) : Promise.resolve(null),
+    G.getActiveAnnouncements().catch(() => []),
+    G.getLeaderboard(10).catch(() => []),
+    G.getActiveTournament().catch(() => null),
   ]);
   return { user, games, history, stats, announcements, leaderboard, tournament };
 }

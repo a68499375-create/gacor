@@ -18,9 +18,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  await ensureSeeded();
-  const user = await getCurrentUser();
-  const owner = await getCurrentOwner();
+  try {
+    await ensureSeeded();
+  } catch {}
+  let user = null;
+  let owner = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
+  try {
+    owner = await getCurrentOwner();
+  } catch {}
 
   return (
     <html lang="id">

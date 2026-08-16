@@ -1,16 +1,14 @@
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
-import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { PGlite } from "@electric-sql/pglite";
-import { Pool as NeonPool } from "@neondatabase/serverless";
 import { Pool as PgPool } from "pg";
 import path from "path";
 
-type AnyDb = ReturnType<typeof drizzlePg> | ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePglite>;
+type AnyDb = ReturnType<typeof drizzlePg> | ReturnType<typeof drizzlePglite>;
 
 const globalForDb = globalThis as typeof globalThis & {
   __arenaDb?: AnyDb;
-  __arenaPool?: unknown;
+  __arenaPool?: PgPool;
   __arenaPglite?: PGlite;
 };
 
@@ -21,22 +19,7 @@ function initDb(): AnyDb {
 
   const databaseUrl = process.env.DATABASE_URL;
 
-  // If DATABASE_URL is set to a remote Neon postgres
-  if (databaseUrl && databaseUrl.includes("neon.tech")) {
-    try {
-      const pool = new NeonPool({
-        connectionString: databaseUrl,
-      });
-      globalForDb.__arenaPool = pool;
-      const db = drizzleNeon(pool);
-      globalForDb.__arenaDb = db;
-      return db;
-    } catch (e) {
-      console.warn("Neon PostgreSQL connection failed, falling back to standard PG:", e);
-    }
-  }
-
-  // If DATABASE_URL is set to another remote postgres
+  // Remote PostgreSQL (Neon, Supabase, Railway, Vercel Postgres, etc.)
   if (databaseUrl && !databaseUrl.includes("pglite") && !databaseUrl.includes("127.0.0.1:5432/app_db") && !databaseUrl.includes("localhost:5432/app_db")) {
     try {
       const pool = new PgPool({
@@ -53,7 +36,7 @@ function initDb(): AnyDb {
     }
   }
 
-  // Use embedded PGlite database with persistent storage in .pgdata
+  // Fallback to embedded PGlite
   const dataDir = path.join(process.cwd(), ".pgdata");
   const pglite = globalForDb.__arenaPglite ?? new PGlite(dataDir);
   globalForDb.__arenaPglite = pglite;
