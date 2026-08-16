@@ -196,17 +196,39 @@ export async function getCurrentUser() {
     const [s] = await db.select().from(sessions).where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date()))).limit(1);
     if (!s) return null;
 
-    const h = await getRequestHeaders();
-    const currentFp = fingerprint(getClientIp(h), getUserAgent(h));
-    if (s.fingerprint && s.fingerprint !== currentFp) {
-      // Session fingerprint mismatch — possible session theft.
-      await db.delete(sessions).where(eq(sessions.token, token));
-      return null;
-    }
-
     const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
     if (!u || u.isBanned) return null;
-    return u;
+
+    return {
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      phone: u.phone,
+      fullName: u.fullName,
+      birthDate: typeof u.birthDate === "string" ? u.birthDate : String(u.birthDate),
+      nik: u.nik,
+      address: u.address,
+      city: u.city,
+      province: u.province,
+      postalCode: u.postalCode,
+      securityQuestion: u.securityQuestion,
+      balance: Number(u.balance) || 0,
+      withdrawableBalance: Number(u.withdrawableBalance) || 0,
+      totalWagered: Number(u.totalWagered) || 0,
+      totalDeposited: Number(u.totalDeposited) || 0,
+      totalWithdrawn: Number(u.totalWithdrawn) || 0,
+      currentWinStreak: u.currentWinStreak,
+      longestWinStreak: u.longestWinStreak,
+      vipLevel: u.vipLevel,
+      isActive: u.isActive,
+      isBanned: u.isBanned,
+      role: u.role,
+      luckMode: u.luckMode,
+      customWinRate: u.customWinRate,
+      luckMultiplier: u.luckMultiplier,
+      referralCode: u.referralCode,
+      avatarUrl: u.avatarUrl,
+    };
   } catch {
     return null;
   }
@@ -227,7 +249,7 @@ export async function getCurrentOwner() {
       if (s) {
         if (s.userId === 0) {
           const [o] = await db.select().from(owner).limit(1);
-          if (o) return o;
+          if (o) return { id: o.id, username: o.username, email: o.email };
         } else {
           const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
           if (u && (u.role === "dev" || u.role === "admin" || u.role === "owner")) {
@@ -236,8 +258,6 @@ export async function getCurrentOwner() {
               username: u.username,
               email: u.email,
               role: u.role,
-              passwordHash: u.passwordHash,
-              createdAt: u.createdAt,
             };
           }
         }
@@ -259,7 +279,8 @@ export async function changeUserPassword(oldPassword: string, newPassword: strin
   const u = await requireUser();
   const strength = passwordStrength(newPassword);
   if (strength.score < 2) throw new Error("Password baru terlalu lemah.");
-  if (!(await verifyPassword(oldPassword, u.passwordHash))) throw new Error("Kata sandi lama salah.");
+  const [row] = await db.select({ pw: users.passwordHash }).from(users).where(eq(users.id, u.id)).limit(1);
+  if (!row || !(await verifyPassword(oldPassword, row.pw))) throw new Error("Kata sandi lama salah.");
   await db.update(users).set({ passwordHash: await hashPassword(newPassword), updatedAt: new Date() }).where(eq(users.id, u.id));
   await logAudit({ actorType: "user", actorId: u.id, action: "USER_PASSWORD_CHANGED" });
   return true;
@@ -269,7 +290,8 @@ export async function changeOwnerPassword(oldPassword: string, newPassword: stri
   const o = await requireOwner();
   const strength = passwordStrength(newPassword);
   if (strength.score < 2) throw new Error("Password baru terlalu lemah.");
-  if (!(await verifyPassword(oldPassword, o.passwordHash))) throw new Error("Kata sandi lama salah.");
+  const [row] = await db.select({ pw: owner.passwordHash }).from(owner).where(eq(owner.id, o.id)).limit(1);
+  if (!row || !(await verifyPassword(oldPassword, row.pw))) throw new Error("Kata sandi lama salah.");
   await db.update(owner).set({ passwordHash: await hashPassword(newPassword) }).where(eq(owner.id, o.id));
   await logAudit({ actorType: "owner", actorId: o.id, action: "OWNER_PASSWORD_CHANGED" });
   return true;

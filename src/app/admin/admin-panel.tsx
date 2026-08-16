@@ -100,14 +100,14 @@ export function AdminPanel() {
   useEffect(() => {
     getAdminData()
       .then((data) => {
-        setGames(data.games.map((g) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
-        setUsersList(data.users);
-        setPendingTopUps(data.pendingTopUps);
-        setPendingWithdrawals(data.pendingWithdrawals);
-        setAllBankAccounts(data.allBankAccounts);
-        setAllAnnouncements(data.allAnnouncements);
-        setAuditLog(data.auditLog);
-        setStats(data.stats);
+        setGames((data.games as GameRow[]).map((g: GameRow) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
+        setUsersList(data.users as UserRow[]);
+        setPendingTopUps(data.pendingTopUps as TxRow[]);
+        setPendingWithdrawals(data.pendingWithdrawals as TxRow[]);
+        setAllBankAccounts(data.allBankAccounts as BankRow[]);
+        setAllAnnouncements(data.allAnnouncements as AnnouncementRow[]);
+        setAuditLog(data.auditLog as AuditRow[]);
+        setStats(data.stats as Stats);
         setAuthed(true);
       })
       .catch(() => {
@@ -121,14 +121,14 @@ export function AdminPanel() {
     try {
       await loginAdminAction(userToLogin, passToLogin);
       const data = await getAdminData();
-      setGames(data.games.map((g) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
-      setUsersList(data.users);
-      setPendingTopUps(data.pendingTopUps);
-      setPendingWithdrawals(data.pendingWithdrawals);
-      setAllBankAccounts(data.allBankAccounts);
-      setAllAnnouncements(data.allAnnouncements);
-      setAuditLog(data.auditLog);
-      setStats(data.stats);
+      setGames((data.games as GameRow[]).map((g: GameRow) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
+      setUsersList(data.users as UserRow[]);
+      setPendingTopUps(data.pendingTopUps as TxRow[]);
+      setPendingWithdrawals(data.pendingWithdrawals as TxRow[]);
+      setAllBankAccounts(data.allBankAccounts as BankRow[]);
+      setAllAnnouncements(data.allAnnouncements as AnnouncementRow[]);
+      setAuditLog(data.auditLog as AuditRow[]);
+      setStats(data.stats as Stats);
       setAuthed(true);
     } catch (e) {
       setError((e as Error).message || "Login gagal");
@@ -281,14 +281,14 @@ export function AdminPanel() {
     setBusy(true);
     try {
       const data = await getAdminData();
-      setGames(data.games.map((g) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
-      setUsersList(data.users);
-      setPendingTopUps(data.pendingTopUps);
-      setPendingWithdrawals(data.pendingWithdrawals);
-      setAllBankAccounts(data.allBankAccounts);
-      setAllAnnouncements(data.allAnnouncements);
-      setAuditLog(data.auditLog);
-      setStats(data.stats);
+      setGames((data.games as GameRow[]).map((g: GameRow) => ({ slug: g.slug, name: g.name, description: g.description, rtp: g.rtp, minBet: g.minBet, maxBet: g.maxBet, enabled: g.enabled })));
+      setUsersList(data.users as UserRow[]);
+      setPendingTopUps(data.pendingTopUps as TxRow[]);
+      setPendingWithdrawals(data.pendingWithdrawals as TxRow[]);
+      setAllBankAccounts(data.allBankAccounts as BankRow[]);
+      setAllAnnouncements(data.allAnnouncements as AnnouncementRow[]);
+      setAuditLog(data.auditLog as AuditRow[]);
+      setStats(data.stats as Stats);
     } finally { setBusy(false); }
   }
 

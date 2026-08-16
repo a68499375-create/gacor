@@ -35,7 +35,7 @@ export async function getInitialState() {
     G.getLeaderboard(10).catch(() => []),
     G.getActiveTournament().catch(() => null),
   ]);
-  return { user, games, history, stats, announcements, leaderboard, tournament };
+  return JSON.parse(JSON.stringify({ user, games, history, stats, announcements, leaderboard, tournament }));
 }
 
 // ============== AUTH ==============
@@ -161,7 +161,7 @@ export async function getAdminData() {
     G.getAllGames(), G.getStats(), G.getAllUsers(), G.getPendingTopUps(), G.getPendingWithdrawals(),
     G.getAllBankAccounts(), G.getAllAnnouncements(), G.getAuditLog(200),
   ]);
-  return { owner: o, games, stats, users, pendingTopUps, pendingWithdrawals, allBankAccounts, allAnnouncements, auditLog: auditLogData };
+  return JSON.parse(JSON.stringify({ owner: o, games, stats, users, pendingTopUps, pendingWithdrawals, allBankAccounts, allAnnouncements, auditLog: auditLogData }));
 }
 
 export async function adminUpdateGame(slug: string, patch: unknown) { await boot(); await G.updateGame(slug, patch); revalidatePath("/", "layout"); }
