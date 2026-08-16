@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@electric-sql/pglite", "pg", "argon2"],
+  serverExternalPackages: ["@electric-sql/pglite", "pg", "argon2", "pg-cloudflare", "@neondatabase/serverless"],
   async headers() {
     const securityHeaders = [
       {

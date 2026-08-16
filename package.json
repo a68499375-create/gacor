@@ -10,17 +10,21 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.5",
+    "@neondatabase/serverless": "^1.1.0",
+    "@opennextjs/cloudflare": "^1.20.2",
     "@types/bcryptjs": "^2.4.6",
     "argon2": "^0.45.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
-    "next": "16.2.6",
+    "next": "^16.2.11",
     "pg": "8.20.0",
+    "pg-cloudflare": "^1.4.0",
     "rate-limiter-flexible": "^11.2.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "server-only": "^0.0.1",
+    "wrangler": "^4.123.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -31,7 +35,7 @@
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "^16.2.11",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3"
