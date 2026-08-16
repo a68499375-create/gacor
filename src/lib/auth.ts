@@ -188,24 +188,28 @@ export async function logoutOwner() {
 }
 
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  if (!token) return null;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session")?.value;
+    if (!token) return null;
 
-  const [s] = await db.select().from(sessions).where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date()))).limit(1);
-  if (!s) return null;
+    const [s] = await db.select().from(sessions).where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date()))).limit(1);
+    if (!s) return null;
 
-  const h = await getRequestHeaders();
-  const currentFp = fingerprint(getClientIp(h), getUserAgent(h));
-  if (s.fingerprint && s.fingerprint !== currentFp) {
-    // Session fingerprint mismatch — possible session theft.
-    await db.delete(sessions).where(eq(sessions.token, token));
+    const h = await getRequestHeaders();
+    const currentFp = fingerprint(getClientIp(h), getUserAgent(h));
+    if (s.fingerprint && s.fingerprint !== currentFp) {
+      // Session fingerprint mismatch — possible session theft.
+      await db.delete(sessions).where(eq(sessions.token, token));
+      return null;
+    }
+
+    const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
+    if (!u || u.isBanned) return null;
+    return u;
+  } catch {
     return null;
   }
-
-  const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
-  if (!u || u.isBanned) return null;
-  return u;
 }
 
 export async function requireUser() {
@@ -215,44 +219,34 @@ export async function requireUser() {
 }
 
 export async function getCurrentOwner() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_session")?.value;
-  if (token) {
-    const [s] = await db.select().from(sessions).where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date()))).limit(1);
-    if (s) {
-      if (s.userId === 0) {
-        const [o] = await db.select().from(owner).limit(1);
-        if (o) return o;
-      } else {
-        const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
-        if (u && (u.role === "dev" || u.role === "admin" || u.role === "owner")) {
-          return {
-            id: u.id,
-            username: u.username,
-            email: u.email,
-            role: u.role,
-            passwordHash: u.passwordHash,
-            createdAt: u.createdAt,
-          };
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("admin_session")?.value;
+    if (token) {
+      const [s] = await db.select().from(sessions).where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date()))).limit(1);
+      if (s) {
+        if (s.userId === 0) {
+          const [o] = await db.select().from(owner).limit(1);
+          if (o) return o;
+        } else {
+          const [u] = await db.select().from(users).where(eq(users.id, s.userId)).limit(1);
+          if (u && (u.role === "dev" || u.role === "admin" || u.role === "owner")) {
+            return {
+              id: u.id,
+              username: u.username,
+              email: u.email,
+              role: u.role,
+              passwordHash: u.passwordHash,
+              createdAt: u.createdAt,
+            };
+          }
         }
       }
     }
+    return null;
+  } catch {
+    return null;
   }
-
-  // Fallback to checking logged-in regular user if role is dev/admin
-  const u = await getCurrentUser();
-  if (u && (u.role === "dev" || u.role === "admin" || u.role === "owner")) {
-    return {
-      id: u.id,
-      username: u.username,
-      email: u.email,
-      role: u.role,
-      passwordHash: u.passwordHash,
-      createdAt: u.createdAt,
-    };
-  }
-
-  return null;
 }
 
 export async function requireOwner() {

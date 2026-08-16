@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </nav>
 
             <div className="flex items-center gap-2 md:gap-3">
-              <BalanceBadge />
+              <BalanceBadge initialBalance={user?.balance ?? 0} />
               {user && <NotificationBell />}
               <div className="hidden md:flex md:items-center md:gap-2">
                 {user ? (

@@ -1,13 +1,6 @@
-import { getCurrentUser } from "@/lib/auth";
+"use client";
 
-export const dynamic = "force-dynamic";
-
-export async function BalanceBadge() {
-  let balance = 0;
-  try {
-    const user = await getCurrentUser();
-    balance = user?.balance ?? 0;
-  } catch {}
+export function BalanceBadge({ initialBalance = 0 }: { initialBalance?: number }) {
   return (
     <div className="flex items-center gap-2.5 rounded-sm border border-gold-deep/60 bg-ink-3 px-3 py-1.5 shadow-inner shadow-black/50">
       <div className="relative h-8 w-8">
@@ -18,7 +11,7 @@ export async function BalanceBadge() {
       </div>
       <div className="flex flex-col leading-tight">
         <span className="font-display text-[9px] tracking-[0.25em] text-gold-deep">SALDO</span>
-        <span className="font-display text-sm font-black tabular-nums text-gold-metal">{balance.toLocaleString("id-ID")}</span>
+        <span className="font-display text-sm font-black tabular-nums text-gold-metal">{(initialBalance || 0).toLocaleString("id-ID")}</span>
       </div>
     </div>
   );
