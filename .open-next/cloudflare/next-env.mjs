@@ -1,3 +1,0 @@
-export const production = {"DATABASE_URL":"postgresql://neondb_owner:npg_BOJ1dnFN8CRE@ep-small-paper-azharwks-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require","NEXT_PUBLIC_SITE_URL":"http://localhost:3000"};
-export const development = {"DATABASE_URL":"postgresql://neondb_owner:npg_BOJ1dnFN8CRE@ep-small-paper-azharwks-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require","NEXT_PUBLIC_SITE_URL":"http://localhost:3000"};
-export const test = {"DATABASE_URL":"postgresql://neondb_owner:npg_BOJ1dnFN8CRE@ep-small-paper-azharwks-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require","NEXT_PUBLIC_SITE_URL":"http://localhost:3000"};

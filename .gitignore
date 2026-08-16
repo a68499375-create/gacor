@@ -35,3 +35,9 @@ next-env.d.ts
 # archives
 *.zip
 
+# cloudflare open-next
+/.open-next/
+/.wrangler/
+.dev.vars
+
+
