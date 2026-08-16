@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users, owner, sessions, otpCodes } from "@/db/schema";
 import { eq, and, gt, sql } from "drizzle-orm";
-import argon2 from "argon2";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { getClientIp, getUserAgent, fingerprint, generateRandomCode, sanitize, passwordStrength } from "./security";
 import { getRequestHeaders } from "./request";
 import { checkLoginRateLimit, recordFailedLogin, resetLoginAttempts, checkActionRateLimit } from "./rate-limit";
@@ -13,38 +13,19 @@ import { logAudit } from "./audit";
 import { registerSchema } from "./validators";
 import { generateReferralCode } from "@/db/seed";
 
-import bcrypt from "bcryptjs";
-
 const SESSION_DAYS = 7;
-const ARGON_OPTIONS = {
-  type: argon2.argon2id,
-  memoryCost: 65536, // 64 MB
-  timeCost: 3,
-  parallelism: 4,
-} as const;
 
 function randomToken() { return crypto.randomBytes(48).toString("hex"); }
 
 async function hashPassword(plain: string) {
-  try {
-    return await argon2.hash(plain, ARGON_OPTIONS);
-  } catch {
-    return bcrypt.hash(plain, 10);
-  }
+  return bcrypt.hash(plain, 10);
 }
 
 async function verifyPassword(plain: string, hash: string) {
   try {
-    if (hash.startsWith("$argon2")) {
-      return await argon2.verify(hash, plain);
-    }
     return await bcrypt.compare(plain, hash);
   } catch {
-    try {
-      return await bcrypt.compare(plain, hash);
-    } catch {
-      return false;
-    }
+    return false;
   }
 }
 

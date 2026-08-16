@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { owner, users, games, siteSettings, bankAccounts, announcements, tournaments } from "./schema";
 import { sql } from "drizzle-orm";
-import argon2 from "argon2";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const DEFAULT_GAMES = [
@@ -88,7 +88,7 @@ export async function seedIfEmpty() {
     if ((existingOwner[0]?.c ?? 0) === 0) {
       await db.insert(owner).values({
         username: "slotgacor",
-        passwordHash: await argon2.hash("gacortsekali", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        passwordHash: await bcrypt.hash("gacortsekali", 10),
         email: "slotgacor@goldenarena.vip",
       });
     }
@@ -97,7 +97,7 @@ export async function seedIfEmpty() {
     try {
       await db.insert(users).values({
         username: "slotgacor",
-        passwordHash: await argon2.hash("gacortsekali", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        passwordHash: await bcrypt.hash("gacortsekali", 10),
         email: "slotgacor@goldenarena.vip",
         emailVerified: true,
         phone: "08123456789",
@@ -109,7 +109,7 @@ export async function seedIfEmpty() {
         province: "DKI Jakarta",
         postalCode: "10110",
         securityQuestion: "What is your secret key?",
-        securityAnswerHash: await argon2.hash("gacortsekali", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        securityAnswerHash: await bcrypt.hash("gacortsekali", 10),
         balance: 10_000_000_000, // 10 Miliar Koin
         withdrawableBalance: 10_000_000_000,
         vipLevel: 5,
@@ -125,7 +125,7 @@ export async function seedIfEmpty() {
     try {
       await db.insert(users).values({
         username: "dev",
-        passwordHash: await argon2.hash("dev12345", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        passwordHash: await bcrypt.hash("dev12345", 10),
         email: "dev@goldenarena.local",
         emailVerified: true,
         phone: "08123456789",
@@ -137,7 +137,7 @@ export async function seedIfEmpty() {
         province: "DKI Jakarta",
         postalCode: "10110",
         securityQuestion: "What is your role?",
-        securityAnswerHash: await argon2.hash("dev", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        securityAnswerHash: await bcrypt.hash("dev", 10),
         balance: 100_000_000,
         withdrawableBalance: 100_000_000,
         vipLevel: 5,
@@ -153,7 +153,7 @@ export async function seedIfEmpty() {
     try {
       await db.insert(users).values({
         username: "player1",
-        passwordHash: await argon2.hash("player12345", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        passwordHash: await bcrypt.hash("player12345", 10),
         email: "player1@goldenarena.local",
         emailVerified: true,
         phone: "08123456780",
@@ -165,7 +165,7 @@ export async function seedIfEmpty() {
         province: "DKI Jakarta",
         postalCode: "10220",
         securityQuestion: "Favorite game?",
-        securityAnswerHash: await argon2.hash("slots", { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }),
+        securityAnswerHash: await bcrypt.hash("slots", 10),
         balance: 10_000_000,
         withdrawableBalance: 10_000_000,
         vipLevel: 2,
