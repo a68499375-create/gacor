@@ -28,8 +28,20 @@ type UserRow = {
   email: string;
   phone: string;
   fullName: string;
+  nik?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
   balance: number;
+  withdrawableBalance?: number;
+  totalDeposited?: number;
+  totalWithdrawn?: number;
+  totalWagered?: number;
   vipLevel: number;
+  currentWinStreak?: number;
+  longestWinStreak?: number;
+  referralCode?: string | null;
   isActive: boolean;
   isBanned: boolean;
   role: string;
@@ -60,7 +72,7 @@ export function AdminPanel() {
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"games" | "users" | "finance" | "announcements" | "security">("games");
   
-  // Selected user controls
+  const [userSearch, setUserSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [newBalance, setNewBalance] = useState(10000000);
   const [bonus, setBonus] = useState(1000000);
@@ -71,6 +83,18 @@ export function AdminPanel() {
   
   const [oldPw, setOldPw] = useState("");
   const [newPw, setNewPw] = useState("");
+
+  const filteredUsers = usersList.filter((u) => {
+    if (!userSearch.trim()) return true;
+    const q = userSearch.toLowerCase();
+    return (
+      u.username.toLowerCase().includes(q) ||
+      u.fullName.toLowerCase().includes(q) ||
+      u.phone.includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.nik && u.nik.includes(q))
+    );
+  });
 
   // Check if already authenticated on load
   useEffect(() => {
@@ -468,17 +492,26 @@ export function AdminPanel() {
       {/* USERS & LUCK MANAGEMENT TAB */}
       {tab === "users" && (
         <div className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_1.1fr]">
             {/* User List Table */}
-            <div className="card-luxe overflow-hidden">
-              <div className="border-b border-line bg-ink-3 px-5 py-3 font-display text-[10px] tracking-[0.3em] text-gold">
-                DAFTAR SEMUA MEMBER & STATUS KEHOKIAN
+            <div className="card-luxe overflow-hidden flex flex-col">
+              <div className="border-b border-line bg-ink-3 px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+                <span className="font-display text-[10px] tracking-[0.3em] text-gold">
+                  DAFTAR SEMUA MEMBER ({filteredUsers.length})
+                </span>
+                <input
+                  type="text"
+                  placeholder="Cari user, nama, HP, NIK..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="rounded border border-line-2 bg-ink-2 px-3 py-1 text-xs text-ivory placeholder:text-ivory/30 outline-none focus:border-gold"
+                />
               </div>
-              <div className="max-h-[560px] overflow-auto">
+              <div className="max-h-[580px] overflow-auto">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-ink-2 font-display text-[10px] tracking-[0.25em] text-gold-deep">
+                  <thead className="sticky top-0 bg-ink-2 font-display text-[10px] tracking-[0.25em] text-gold-deep z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left">USER / ROLE</th>
+                      <th className="px-4 py-3 text-left">USER / NAMA</th>
                       <th className="px-4 py-3 text-right">SALDO</th>
                       <th className="px-4 py-3 text-center">KEHOKIAN</th>
                       <th className="px-4 py-3 text-center">STATUS</th>
@@ -486,7 +519,7 @@ export function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody className="font-mono text-xs">
-                    {usersList.map((u) => {
+                    {filteredUsers.map((u) => {
                       const isSelected = selectedUserId === u.id;
                       const luckBadge =
                         u.luckMode === "always_win"
@@ -525,6 +558,7 @@ export function AdminPanel() {
                               </span>
                             </div>
                             <div className="text-[10px] text-ivory/40">{u.fullName}</div>
+                            {u.phone && <div className="text-[9px] text-gold-deep/60">📱 {u.phone}</div>}
                           </td>
                           <td className="px-4 py-3 text-right font-bold tabular-nums text-gold">
                             {u.balance.toLocaleString("id-ID")}
@@ -563,6 +597,70 @@ export function AdminPanel() {
 
             {/* User Luck & Balance Control Panel */}
             <div className="space-y-4">
+              {/* Member Full Dossier Card */}
+              {selectedUser && (
+                <div className="card-luxe p-5 border-gold/30 bg-ink-2/80">
+                  <div className="flex items-center justify-between border-b border-line pb-2 mb-3">
+                    <div>
+                      <span className="text-[10px] font-display tracking-[0.25em] text-gold">
+                        DATA LENGKAP MEMBER #{selectedUser.id}
+                      </span>
+                      <h4 className="font-display text-lg text-gold-metal font-bold">{selectedUser.fullName}</h4>
+                    </div>
+                    <span className="rounded bg-gold/15 px-2.5 py-1 text-[11px] font-mono text-gold border border-gold/30 font-bold">
+                      @{selectedUser.username}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="rounded border border-line-2 bg-ink-3/80 p-2.5">
+                      <span className="text-[10px] font-display text-gold-deep tracking-wider block">NO TELEPON / WA</span>
+                      <span className="font-mono text-ivory font-bold">{selectedUser.phone || "-"}</span>
+                    </div>
+                    <div className="rounded border border-line-2 bg-ink-3/80 p-2.5">
+                      <span className="text-[10px] font-display text-gold-deep tracking-wider block">EMAIL</span>
+                      <span className="font-mono text-ivory truncate block">{selectedUser.email || "-"}</span>
+                    </div>
+                    <div className="rounded border border-line-2 bg-ink-3/80 p-2.5">
+                      <span className="text-[10px] font-display text-gold-deep tracking-wider block">NIK KTP</span>
+                      <span className="font-mono text-ivory font-bold">{selectedUser.nik || "-"}</span>
+                    </div>
+                    <div className="rounded border border-line-2 bg-ink-3/80 p-2.5">
+                      <span className="text-[10px] font-display text-gold-deep tracking-wider block">REFERRAL CODE</span>
+                      <span className="font-mono text-gold font-bold">{selectedUser.referralCode || "-"}</span>
+                    </div>
+                    <div className="col-span-2 rounded border border-line-2 bg-ink-3/80 p-2.5">
+                      <span className="text-[10px] font-display text-gold-deep tracking-wider block">ALAMAT DOMISILI</span>
+                      <span className="text-ivory/80 text-[11px]">
+                        {selectedUser.address ? `${selectedUser.address}, ${selectedUser.city || ""}, ${selectedUser.province || ""} ${selectedUser.postalCode || ""}` : "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Financial Metrics */}
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="rounded bg-emerald-500/10 border border-emerald-500/30 p-2">
+                      <span className="text-[9px] font-display text-emerald-400 block tracking-wider">TOTAL DEPO</span>
+                      <span className="font-mono text-emerald-300 font-bold">
+                        {(selectedUser.totalDeposited || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                    <div className="rounded bg-wine/20 border border-wine/40 p-2">
+                      <span className="text-[9px] font-display text-wine-light block tracking-wider">TOTAL WD</span>
+                      <span className="font-mono text-wine-light font-bold">
+                        {(selectedUser.totalWithdrawn || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                    <div className="rounded bg-blue-500/10 border border-blue-500/30 p-2">
+                      <span className="text-[9px] font-display text-blue-400 block tracking-wider">TOTAL BET</span>
+                      <span className="font-mono text-blue-300 font-bold">
+                        {(selectedUser.totalWagered || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="card-luxe p-6">
                 <div className="mb-1 font-display text-[10px] tracking-[0.3em] text-gold-deep">
                   — PENGATURAN KEHOKIAN PER AKUN —
