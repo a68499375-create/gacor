@@ -9,48 +9,56 @@ const LOCKOUT_MINUTES = 15;
 
 // Simple PostgreSQL-backed rate limiter for login attempts.
 export async function checkLoginRateLimit(key: string): Promise<{ allowed: boolean; remaining: number; lockedUntil?: Date }> {
-  const [row] = await db.select().from(loginAttempts).where(eq(loginAttempts.key, key)).limit(1);
-  const now = new Date();
+  try {
+    const [row] = await db.select().from(loginAttempts).where(eq(loginAttempts.key, key)).limit(1);
+    const now = new Date();
 
-  if (row?.lockedUntil && row.lockedUntil > now) {
-    return { allowed: false, remaining: 0, lockedUntil: row.lockedUntil };
+    if (row?.lockedUntil && row.lockedUntil > now) {
+      return { allowed: false, remaining: 0, lockedUntil: row.lockedUntil };
+    }
+
+    if (!row) {
+      return { allowed: true, remaining: MAX_ATTEMPTS - 1 };
+    }
+
+    // Reset after lockout expired.
+    if (row.lockedUntil && row.lockedUntil <= now) {
+      await db.update(loginAttempts).set({ count: 1, lockedUntil: null, lastAttemptAt: now }).where(eq(loginAttempts.key, key));
+      return { allowed: true, remaining: MAX_ATTEMPTS - 1 };
+    }
+
+    const remaining = Math.max(0, MAX_ATTEMPTS - row.count);
+    if (row.count >= MAX_ATTEMPTS) {
+      const lockedUntil = new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000);
+      await db.update(loginAttempts).set({ lockedUntil, lastAttemptAt: now }).where(eq(loginAttempts.key, key));
+      return { allowed: false, remaining: 0, lockedUntil };
+    }
+
+    return { allowed: true, remaining };
+  } catch {
+    return { allowed: true, remaining: MAX_ATTEMPTS };
   }
-
-  if (!row) {
-    return { allowed: true, remaining: MAX_ATTEMPTS - 1 };
-  }
-
-  // Reset after lockout expired.
-  if (row.lockedUntil && row.lockedUntil <= now) {
-    await db.update(loginAttempts).set({ count: 1, lockedUntil: null, lastAttemptAt: now }).where(eq(loginAttempts.key, key));
-    return { allowed: true, remaining: MAX_ATTEMPTS - 1 };
-  }
-
-  const remaining = Math.max(0, MAX_ATTEMPTS - row.count);
-  if (row.count >= MAX_ATTEMPTS) {
-    const lockedUntil = new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000);
-    await db.update(loginAttempts).set({ lockedUntil, lastAttemptAt: now }).where(eq(loginAttempts.key, key));
-    return { allowed: false, remaining: 0, lockedUntil };
-  }
-
-  return { allowed: true, remaining };
 }
 
 export async function recordFailedLogin(key: string) {
-  const now = new Date();
-  const existing = await db.select().from(loginAttempts).where(eq(loginAttempts.key, key)).limit(1);
+  try {
+    const now = new Date();
+    const existing = await db.select().from(loginAttempts).where(eq(loginAttempts.key, key)).limit(1);
 
-  if (existing.length === 0) {
-    await db.insert(loginAttempts).values({ key, count: 1, lastAttemptAt: now });
-  } else {
-    const newCount = existing[0].count + 1;
-    const lockedUntil = newCount >= MAX_ATTEMPTS ? new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000) : existing[0].lockedUntil;
-    await db.update(loginAttempts).set({ count: newCount, lastAttemptAt: now, lockedUntil }).where(eq(loginAttempts.key, key));
-  }
+    if (existing.length === 0) {
+      await db.insert(loginAttempts).values({ key, count: 1, lastAttemptAt: now });
+    } else {
+      const newCount = existing[0].count + 1;
+      const lockedUntil = newCount >= MAX_ATTEMPTS ? new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000) : existing[0].lockedUntil;
+      await db.update(loginAttempts).set({ count: newCount, lastAttemptAt: now, lockedUntil }).where(eq(loginAttempts.key, key));
+    }
+  } catch {}
 }
 
 export async function resetLoginAttempts(key: string) {
-  await db.delete(loginAttempts).where(eq(loginAttempts.key, key));
+  try {
+    await db.delete(loginAttempts).where(eq(loginAttempts.key, key));
+  } catch {}
 }
 
 // In-memory rate limiter with high capacity so gameplay/testing is never throttled.
