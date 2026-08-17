@@ -306,18 +306,21 @@ async function canPlay(userId: number, slug: string, wager: number) {
   if (!game || !game.enabled) {
     throw new Error(`Permainan ${slug} sedang dinonaktifkan oleh owner.`);
   }
-  if (cleanWager < game.minBet) {
-    throw new Error(`Minimal taruhan adalah ${game.minBet.toLocaleString("id-ID")} koin.`);
+  const minBet = Number(game.minBet) || 1;
+  const maxBet = Number(game.maxBet) || 1_000_000_000;
+  if (cleanWager < minBet) {
+    throw new Error(`Minimal taruhan adalah ${minBet.toLocaleString("id-ID")} koin.`);
   }
-  if (cleanWager > game.maxBet) {
-    throw new Error(`Maksimal taruhan adalah ${game.maxBet.toLocaleString("id-ID")} koin.`);
+  if (cleanWager > maxBet) {
+    throw new Error(`Maksimal taruhan adalah ${maxBet.toLocaleString("id-ID")} koin.`);
   }
 
   const [u] = await db.select({ balance: users.balance, isBanned: users.isBanned, isActive: users.isActive }).from(users).where(eq(users.id, userId)).limit(1);
   if (!u) throw new Error("Akun tidak ditemukan.");
   if (u.isBanned) throw new Error("Akun ini telah diblokir.");
   if (!u.isActive) throw new Error("Akun tidak aktif.");
-  if (u.balance < cleanWager) throw new Error("Saldo tidak cukup.");
+  const uBalance = Number(u.balance) || 0;
+  if (uBalance < cleanWager) throw new Error("Saldo tidak cukup.");
 
   return cleanWager;
 }
