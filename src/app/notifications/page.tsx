@@ -5,8 +5,21 @@ import { getMyNotificationsAction, markAllNotificationsReadAction } from "@/app/
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {}
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-md card-luxe p-10 text-center space-y-4 my-12">
+        <div className="font-display text-2xl text-gold-metal">AKSES MEMBER DIPERLUKAN</div>
+        <p className="text-sm text-ivory/60">Silakan masuk ke akun Anda untuk melihat notifikasi.</p>
+        <div className="pt-2">
+          <a href="/login" className="btn-luxe inline-block w-full">Masuk Sekarang</a>
+        </div>
+      </div>
+    );
+  }
 
   const notifications = await getMyNotificationsAction();
 

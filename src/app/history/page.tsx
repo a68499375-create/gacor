@@ -10,7 +10,17 @@ export default async function HistoryPage() {
   try {
     user = await getCurrentUser();
   } catch {}
-  if (!user) redirect("/login");
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-md card-luxe p-10 text-center space-y-4 my-12">
+        <div className="font-display text-2xl text-gold-metal">AKSES MEMBER DIPERLUKAN</div>
+        <p className="text-sm text-ivory/60">Silakan masuk ke akun Anda untuk melihat catatan riwayat permainan.</p>
+        <div className="pt-2">
+          <a href="/login" className="btn-luxe inline-block w-full">Masuk Sekarang</a>
+        </div>
+      </div>
+    );
+  }
   const history = await getHistory(user.id, 200).catch(() => []);
   return (
     <div className="space-y-8">
