@@ -42,19 +42,22 @@ export async function getInitialState() {
 export async function registerAction(input: RegisterInput) {
   await boot();
   await rateLimitAction(`register_action`);
-  return registerUser(input);
+  const res = await registerUser(input);
+  return JSON.parse(JSON.stringify(res));
 }
 
 export async function loginAction(username: string, password: string) {
   await boot();
   await rateLimitAction(`login_action`);
-  return loginUser(username, password);
+  const res = await loginUser(username, password);
+  return JSON.parse(JSON.stringify(res));
 }
 
 export async function loginAdminAction(username: string, password: string) {
   await boot();
   await rateLimitAction(`owner_login_action`);
-  return loginOwner(username, password);
+  const res = await loginOwner(username, password);
+  return JSON.parse(JSON.stringify(res));
 }
 
 export async function logoutAction() {
@@ -70,7 +73,7 @@ export async function logoutAdminAction() {
 export async function whoami() {
   await boot();
   const [user, owner] = await Promise.all([getCurrentUser(), getCurrentOwner()]);
-  return { user, owner };
+  return JSON.parse(JSON.stringify({ user, owner }));
 }
 
 // ============== GAMES ==============
@@ -78,28 +81,28 @@ export async function spinSlots(wager: number) {
   await boot();
   const result = await G.playSlots(wager);
   revalidatePath("/", "layout");
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function spinRoulette(wager: number, bet: Parameters<typeof G.playRoulette>[1]) {
   await boot();
   const result = await G.playRoulette(wager, bet);
   revalidatePath("/", "layout");
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function rollDice(wager: number, threshold: number, side: "over" | "under") {
   await boot();
   const result = await G.playDice(wager, threshold, side);
   revalidatePath("/", "layout");
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function flipCoin(wager: number, choice: "heads" | "tails") {
   await boot();
   const result = await G.playCoinflip(wager, choice);
   revalidatePath("/", "layout");
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function getLastResultsAction(gameSlug: string) {

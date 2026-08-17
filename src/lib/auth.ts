@@ -32,29 +32,41 @@ async function verifyPassword(plain: string, hash: string) {
 async function createSession(userId: number) {
   const token = randomToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
-  const h = await getRequestHeaders();
-  const ip = getClientIp(h);
-  const userAgent = getUserAgent(h);
-  await db.insert(sessions).values({
-    userId,
-    token,
-    ip,
-    userAgent,
-    fingerprint: fingerprint(ip, userAgent),
-    expiresAt,
-  });
+  try {
+    const h = await getRequestHeaders();
+    const ip = getClientIp(h);
+    const userAgent = getUserAgent(h);
+    await db.insert(sessions).values({
+      userId,
+      token,
+      ip,
+      userAgent,
+      fingerprint: fingerprint(ip, userAgent),
+      expiresAt,
+    });
+  } catch {
+    await db.insert(sessions).values({
+      userId,
+      token,
+      expiresAt,
+    });
+  }
   return token;
 }
 
 async function setSessionCookie(name: string, token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(name, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-    path: "/",
-  });
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(name, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: SESSION_DAYS * 24 * 60 * 60,
+      path: "/",
+    });
+  } catch (e) {
+    console.warn("Cookie set error:", e);
+  }
 }
 
 export type RegisterInput = {
