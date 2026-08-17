@@ -80,28 +80,24 @@ export async function whoami() {
 export async function spinSlots(wager: number) {
   await boot();
   const result = await G.playSlots(wager);
-  revalidatePath("/", "layout");
   return JSON.parse(JSON.stringify(result));
 }
 
 export async function spinRoulette(wager: number, bet: Parameters<typeof G.playRoulette>[1]) {
   await boot();
   const result = await G.playRoulette(wager, bet);
-  revalidatePath("/", "layout");
   return JSON.parse(JSON.stringify(result));
 }
 
 export async function rollDice(wager: number, threshold: number, side: "over" | "under") {
   await boot();
   const result = await G.playDice(wager, threshold, side);
-  revalidatePath("/", "layout");
   return JSON.parse(JSON.stringify(result));
 }
 
 export async function flipCoin(wager: number, choice: "heads" | "tails") {
   await boot();
   const result = await G.playCoinflip(wager, choice);
-  revalidatePath("/", "layout");
   return JSON.parse(JSON.stringify(result));
 }
 
